@@ -1,0 +1,128 @@
+#include "Adafruit_SSD1306/Adafruit_GFX.h"
+#include "Adafruit_SSD1306/Adafruit_SSD1306.h"
+
+//#define OLED_RESET D4
+//Adafruit_SSD1306 display(OLED_RESET);
+#define OLED_ADDR 0x3C
+Adafruit_SSD1306 display(-1);
+
+// We will be using D1 to control our LED
+
+// Ligths
+int ledPinRight = D4;
+int ledPin2 = D7;
+int ledPinLeft = D3;
+// Player Score
+int playerRight = 0;
+int playerLeft = 0;
+// Button On State
+bool rightOn = 0;
+bool leftOn = 0;
+bool gameOver = 0;
+
+// Our button wired to D0
+int buttonPinRight = D5;
+int buttonPinLeft = D2;
+Timer timer(10000, winner);
+
+void setup()
+{
+  display.begin(SSD1306_SWITCHCAPVCC);
+  display.setTextColor(WHITE);
+  display.clearDisplay();
+  // For input, we define the
+  // pushbutton as an input-pullup
+  // this uses an internal pullup resistor
+  // to manage consistent reads from the device
+
+  pinMode( buttonPinRight , INPUT_PULLUP); // sets pin as input
+  pinMode( buttonPinLeft, INPUT_PULLUP);
+
+  // We also want to use the LED
+
+  pinMode( ledPinRight , OUTPUT ); // sets pin as output
+  pinMode( ledPin2, OUTPUT);
+  pinMode( ledPinLeft, OUTPUT);
+  
+   Particle.variable("playerRight", playerRight);
+   Particle.variable("playerLeft", playerLeft);
+   timer.start();
+}
+
+void loop()
+{ 
+    int buttonStateRight = digitalRead( buttonPinRight );
+    int buttonStateLeft = digitalRead( buttonPinLeft);
+  if (gameOver == 0)
+    {
+  
+        if( buttonStateRight == LOW )
+         {
+            // turn the LED On
+            digitalWrite( ledPinRight, HIGH);
+            // digitalWrite( ledPin2, HIGH);
+            if (rightOn == 0)
+            {
+                playerRight++;
+                rightOn = 1;
+            }
+         }
+        else{
+             // otherwise
+             // turn the LED Off
+             rightOn = 0;
+             digitalWrite( ledPinRight, LOW);
+              //  digitalWrite( ledPin2, LOW);
+             }
+  
+        if( buttonStateLeft == LOW )
+          {
+            // turn the LED On
+            //  digitalWrite( ledPin2, HIGH);
+            digitalWrite( ledPinLeft, HIGH);
+                if (leftOn == 0)
+                   {
+                    playerLeft++;
+                    leftOn = 1;
+                    }
+           }
+        else
+            {
+             // otherwise
+             // turn the LED Off
+             // digitalWrite( ledPin2, LOW);
+             digitalWrite( ledPinLeft, LOW);
+             leftOn = 0;
+            }
+  display.setTextColor(WHITE);
+  display.setTextSize(2);
+  display.setCursor(0,0);
+  display.clearDisplay();
+  display.println(playerLeft);
+  display.println(playerRight);
+  display.display();
+    }
+}
+
+
+void winner()
+{
+          gameOver = 1;
+        //   delay(200);
+          display.clearDisplay();
+          display.setTextColor(WHITE);
+          display.setTextSize(1);
+          display.setCursor(0,0);
+        if ( playerLeft > playerRight)
+        {
+          display.println("playerLeft has won");
+        }       
+        else if (playerRight > playerLeft)
+        {
+          display.println("playerRight has won");
+        } 
+        else
+        {
+          display.println("It ended in a tie");
+        } 
+}
